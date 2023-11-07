@@ -1,0 +1,86 @@
+{% comment %} <!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+</head>
+<body>
+    <h1>Login</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html>
+ {% endcomment %}
+
+
+ <!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+</head>
+<body>
+    <h1>Login</h1>
+    <form id="login-form">
+        <input type="text" name="username" placeholder="Username">
+        <input type="password" name="password" placeholder="Password">
+        <button type="submit">Login</button>
+    </form>
+
+    <div id="user-details" style="display: none;">
+        <h2>User Details</h2>
+        <p>Username: <span id="username"></span></p>
+        <p>Email: <span id="email"></span></p>
+    </div>
+
+    <script>
+        document.getElementById('login-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const username = document.querySelector('input[name="username"]').value;
+            const password = document.querySelector('input[name="password"]').value;
+
+            const data = {
+                username: username,
+                password: password,
+            };
+
+            fetch('/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const accessToken = data.access_token;
+
+                // Store the access token securely (e.g., in localStorage) and use it for authenticated requests.
+                console.log('Access Token:', accessToken);
+
+                // Fetch user details using the access token and display them
+                fetch('/api/user-details/', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Token ${accessToken}`,
+                    },
+                })
+                .then(response => response.json())
+                .then(user => {
+                    document.getElementById('username').innerText = user.username;
+                    document.getElementById('email').innerText = user.email;
+                    document.getElementById('user-details').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error fetching user details:', error);
+                });
+            })
+            .catch(error => {
+                console.error('Login failed:', error);
+            });
+        });
+    </script>
+</body>
+</html>
