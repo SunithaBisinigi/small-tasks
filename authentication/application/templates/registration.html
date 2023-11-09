@@ -6,9 +6,41 @@
 <body>
     <h1>Registration</h1>
     <form method="post">
-        {% csrf_token %}
+        {% comment %} {% csrf_token %} {% endcomment %}
         {{ form.as_p }}
         <button type="submit">Register</button>
     </form>
+    <script>
+        document.getElementById('registration-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+        
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+        
+            const data = {
+                username: username,
+                password: password
+            };
+        
+            fetch('/registration/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Store the access token in localStorage
+                localStorage.setItem('access_token', data.access_token);
+                console.log('Access Token:', data.access_token);
+        
+                // Handle any additional actions, e.g., redirect to the home page
+            })
+            .catch(error => {
+                console.error('Registration failed:', error);
+            });
+        });
+    </script>        
 </body>
 </html>
