@@ -5,6 +5,7 @@
 </head>
 <body>
     <h1>Registration</h1>
+<<<<<<< HEAD
     <form method="post">
         {% comment %} {% csrf_token %} {% endcomment %}
         {{ form.as_p }}
@@ -42,5 +43,41 @@
             });
         });
     </script>        
+=======
+    <form id="registration-form" method="post">
+        {{ form.as_p }}
+        <button type="submit">Register</button>
+    </form>
+
+    <script>
+        document.getElementById('registration-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            // Serialize the form data
+            const formData = new FormData(event.target);
+
+            fetch('/registration/', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.access_token) {
+                    // Registration successful, save access token to local storage
+                    localStorage.setItem('access_token', data.access_token);
+
+                    // Redirect to the home page or any desired URL
+                    window.location.href = '/api/home/';
+                } else {
+                    // Handle registration errors, e.g., display an error message
+                    console.log('Registration failed:', data.error_message);
+                }
+            })
+            .catch(error => {
+                console.error('Registration request error:', error);
+            });
+        });
+    </script>
+>>>>>>> 532eb1a0c66ce59b901db4db13ac00672ae0e713
 </body>
 </html>
