@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Registration</title>
+</head>
+<body>
+    <h1>Registration</h1>
+    <form id="registration-form" method="POST">
+        {{ form.as_p }}
+        <button type="submit">Register</button>
+    </form>
+
+    <script>
+        document.getElementById('registration-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+            console.log("frontend----------",formData);
+
+            fetch('/registration/', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.access_token) {
+                    console.log("The data is:",data);
+                    document.cookie = `access_token=${data.access_token}; max-age=3600*3; path=/; samesite=Lax; httponly`;
+                    window.location.href = '/api/home/';
+                } else {
+                    console.log('Registration failed:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Registration request error:', error);
+            });
+        });
+    </script>
+</body>
+</html>

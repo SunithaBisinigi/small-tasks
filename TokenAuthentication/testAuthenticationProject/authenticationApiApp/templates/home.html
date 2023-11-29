@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Home</title>
+</head>
+<body>
+    <h1>Welcome to the Home Page</h1>
+    {% if user_details %}
+    <div id="user-details">
+        <h2>User Details</h2>
+        <p>Username: {{ user_details.username }}</p>
+        <p>Email: {{ user_details.useremail }}</p>
+    </div>
+    {% endif %}
+    <button id="logout-button">Logout</button>
+    <script>
+        alert("Welcome to home page ")
+        document.getElementById('logout-button').addEventListener('click', function () {
+        fetch('/api/logout/', {
+                method: 'POST',  // You can use 'GET' or 'POST' based on your server-side implementation
+                credentials: 'same-origin',  // Include cookies in the request
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Logout successful');
+                        // Redirect to the login page
+                        window.location.href = '/api/login';  // Update '/login' with your actual login page URL
+                    } else {
+                        alert('Logout failed');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error during logout:', error);
+            });
+        });
+    </script>
+</body>
+</html>
