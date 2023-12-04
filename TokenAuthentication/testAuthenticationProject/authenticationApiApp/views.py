@@ -2,8 +2,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User
-from .forms import RegistrationForm, LoginForm
-from .models import UserToken
+from .forms import RegistrationForm, LoginForm, UserProfileForm
+from .models import UserToken, UserProfile
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
@@ -24,6 +24,10 @@ import base64
 import json
 from jwt import decode as jwt_decode
 from datetime import datetime, timezone
+from django.contrib.auth import authenticate, login
+from rest_framework.decorators import permission_classes
+from rest_framework.permissions import IsAuthenticated
+from django.views.decorators.cache import never_cache
 
 
 ######################################## DECODING THE TOKEN #####################################
@@ -57,6 +61,7 @@ def registration(request):
                 return redirect('registration')  
             
             user = User.objects.create_user(username=username, email=email, password=password1)
+            login(request, user)
             tokens = get_tokens_for_user(user)
             access_token = tokens['access']
             
@@ -137,6 +142,8 @@ def login_view(request):
 
 #########################  HOME ###########################################################
 @csrf_exempt
+@never_cache
+@permission_classes([IsAuthenticated])
 def home(request):
     print("request to the home page--------", request)
     access_token = request.COOKIES.get('access_token') 
@@ -196,6 +203,8 @@ def home(request):
                 'username' : user_token.user.username,
                 'useremail' : user_token.user.email
             }
+            # this is for the profile view restriction
+            request.session['visited_home'] = True
             return render(request, 'home.html', {'user_details': user_details})
         else:
             raise InvalidToken('User not authenticated')
@@ -214,29 +223,45 @@ def home(request):
     except Exception as e:
         # Log the exception or print it for debugging
         print("Exception:", str(e))
-        return JsonResponse({'error': 'Authentication failed or token expired'}, status=401)
+        response = redirect('/api/login/')
+        response.delete_cookie('access_token')
+        return response
+        # return JsonResponse({'error': 'Authentication failed or token expired'}, status=401)
     
 ##################### LOGOUT ################################
 @csrf_exempt
+@never_cache
 def logoutview(request):
+    request.session.flush()
     # Clear the access_token cookie
     response = redirect('/api/login/')  # Update '/login' with your actual login page URL
     response.delete_cookie('access_token')
     print("cookie information is deleted-----------------")
+    # Disable caching
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+
     return response
 
-# ################################    USER DETAILS FETCHING API ####################################
-# @csrf_exempt
-# def get_user_details(request):
-#     user = request.user
-#     if user.is_authenticated:
-#         user_data = {
-#             'username': user.username,
-#             'email': user.email,
-#         }
-#         print("GET USER DETAILS--------------------------------------------", user_data)
-#         return JsonResponse(user_data)
-#     else:
-#         return HttpResponseBadRequest("Invalid or expired token")
 
+################# PROFILE ############################
 
+def profile(request):
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, request.FILES, instance=user_profile)
+        if form.is_valid():
+            form.save()
+            return redirect('profile')
+    else:
+        form = UserProfileForm(instance=user_profile)
+
+    return render(request, 'profile.html', {'user_profile': user_profile, 'form': form})
+
+def delete_image(request):
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+    user_profile.image.delete()
+    user_profile.save()
+    return redirect('profile')

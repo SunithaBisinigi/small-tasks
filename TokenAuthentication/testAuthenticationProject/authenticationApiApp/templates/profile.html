@@ -1,0 +1,98 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>User Profile</title>
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+</head>
+
+<body class="container mt-5">
+
+    <h1>User Profile</h1>
+
+    <div class="mb-4">
+        {% if user_profile.image %}
+        <img src="{{ user_profile.image.url }}" alt="{{ user_profile.user.username }}'s Profile Image"
+            class="img-fluid" style="max-width: 300px; height: auto;"/>
+        {% else %}
+        <p>No profile image available.</p>
+        {% endif %}
+    </div>
+
+    <form method="post" action="{% url 'profile' %}" enctype="multipart/form-data" class="mb-4">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="image_input">Choose an image:</label>
+            <input type="file" name="image" accept="image/*" id="image_input" class="form-control-file">
+        </div>
+        <button type="submit" class="btn btn-success">Add/Update Image</button>
+        <a href="{% url 'home' %}" class="btn btn-secondary ml-2">Back to Home</a>
+    </form>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</body>
+
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>User Profile</title>
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+</head>
+
+<body class="container mt-5">
+
+    <h1>User Profile</h1>
+
+    <div class="mb-4">
+        {% if user_profile.image %}
+        <img src="{{ user_profile.image.url }}" alt="{{ user_profile.user.username }}'s Profile Image" class="img-fluid"
+            style="max-width: 300px; height: auto;">
+        {% else %}
+        <p>No profile image available.</p>
+        {% endif %}
+    </div>
+
+    <form method="post" action="{% url 'profile' %}" enctype="multipart/form-data" class="mb-4">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="image_input">Choose an image:</label>
+            <input type="file" name="image" accept="image/*" id="image_input" class="form-control-file">
+        </div>
+        <button type="submit" class="btn btn-success">Add/Update Image</button>
+    </form>
+
+    {% if user_profile.image %}
+    <form method="post" action="{% url 'delete_image' %}" class="mb-4">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Delete Profile</button>
+    </form>
+    {% endif %}
+
+    <a href="{% url 'home' %}" class="btn btn-secondary">Back to Home</a>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</body>
+
+</html>

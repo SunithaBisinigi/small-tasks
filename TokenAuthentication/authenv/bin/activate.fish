@@ -29,7 +29,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV "/Users/quantumitservicesllpllp/Desktop/python/TokenAuthentication/authenv"
+set -gx VIRTUAL_ENV "/Users/quantumitservicesllpllp/Desktop/practice/TokenAuthentication/authenv"
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/bin" $PATH

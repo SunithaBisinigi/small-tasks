@@ -1,10 +1,16 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Home</title>
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 </head>
+
 <body>
     <h1>Welcome to the Home Page</h1>
+    <a href="profile">Profile</a>
     {% if user_details %}
     <div id="user-details">
         <h2>User Details</h2>
@@ -16,7 +22,7 @@
     <script>
         alert("Welcome to home page ")
         document.getElementById('logout-button').addEventListener('click', function () {
-        fetch('/api/logout/', {
+            fetch('/api/logout/', {
                 method: 'POST',  // You can use 'GET' or 'POST' based on your server-side implementation
                 credentials: 'same-origin',  // Include cookies in the request
                 headers: {
@@ -34,8 +40,9 @@
                 })
                 .catch(error => {
                     console.error('Error during logout:', error);
-            });
+                });
         });
     </script>
 </body>
+
 </html>

@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/Users/quantumitservicesllpllp/Desktop/python/TokenAuthentication/authenv"
+VIRTUAL_ENV="/Users/quantumitservicesllpllp/Desktop/practice/TokenAuthentication/authenv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

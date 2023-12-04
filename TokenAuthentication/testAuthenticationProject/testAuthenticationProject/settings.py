@@ -105,6 +105,8 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Absolute path to the media directory
+MEDIA_URL = '/media/'  # Base URL to serve media files
 
 
 # Internationalization
@@ -132,7 +134,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Simple jwt token settings
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=51),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=100),
     "ALGORITHM": "HS256",
     "SIGNING_KEY": SECRET_KEY,
     "USER_ID_FIELD": "id",
