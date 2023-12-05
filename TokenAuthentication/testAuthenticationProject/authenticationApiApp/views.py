@@ -1,32 +1,25 @@
 # # =================================token implememtation......====================================
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User
 from .forms import RegistrationForm, LoginForm, UserProfileForm
 from .models import UserToken, UserProfile
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
 from rest_framework.permissions import IsAuthenticated
 from django.contrib import messages
 from rest_framework_simplejwt.exceptions import TokenError
-from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from calendar import timegm
 from datetime import datetime
 import json
 from django.http import JsonResponse, HttpResponseBadRequest
-from django.contrib.auth import authenticate
-from django.shortcuts import render
-from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.contrib.auth.decorators import login_required
 from rest_framework_simplejwt.exceptions import InvalidToken
 import base64
-import json
 from jwt import decode as jwt_decode
 from datetime import datetime, timezone
 from django.contrib.auth import authenticate, login
 from rest_framework.decorators import permission_classes
-from rest_framework.permissions import IsAuthenticated
 from django.views.decorators.cache import never_cache
 
 
@@ -151,6 +144,7 @@ def home(request):
         # Ensure the token is present and has three parts
         print("---------- TOKEN LENGTH-------", len(access_token.split('.')) )
         if not access_token or len(access_token.split('.')) != 3:
+            print("HEY SUNITHA THIS IS FROM LINE 147------------------")
             raise InvalidToken('Invalid JWT format')
         # Decode each part of the token and handle padding
         decoded_parts = []
@@ -167,6 +161,7 @@ def home(request):
         # Check if decoding produced the expected number of parts
         if len(decoded_parts) != 3:
             raise InvalidToken('Invalid number of parts in decoded token')
+            
         # Extract the payload and decode as JSON
         payload = decoded_parts[1]
         payload_json = json.loads(payload)
@@ -211,6 +206,7 @@ def home(request):
 
     except InvalidToken as e:
         # Log the exception or print it for debugging
+        print("HEY SUNITHA THIS IS FROM LINE 209------------------")
         print("Exception:", str(e))
         response = redirect ('/api/login/')
         response.delete_cookie('access_token')
@@ -222,6 +218,7 @@ def home(request):
 
     except Exception as e:
         # Log the exception or print it for debugging
+        print("HEY SUNITHA THIS IS FROM LINE 221------------------")
         print("Exception:", str(e))
         response = redirect('/api/login/')
         response.delete_cookie('access_token')
@@ -246,22 +243,79 @@ def logoutview(request):
 
 
 ################# PROFILE ############################
+# @login_required
+# def profile(request):
+#     print (request.user)
+#     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+#     print("hey sunitha-------",user_profile.image_url)
+#     if request.method == 'POST':
+#         form = UserProfileForm(request.POST, request.FILES, instance=user_profile)
+#         url= user_profile.image.url
+#         # print("this is url", url)
+#         if form.is_valid():
+#             user_profile = form.save(commit=False)
+#             print("data1-------",user_profile.image_url)
+#             user_profile.image_url = url
+#             user_profile.save() 
+#             print("data2--------",user_profile.image_url)#HERE I NEED TO WORK 
+#             return redirect('profile')
+#         user_profile.image_url = url
+#         user_profile.save()
 
+#     else:
+#         form = UserProfileForm(instance=user_profile)
+   
+#     return render(request, 'profile.html', {'user_profile': user_profile, 'form': form})
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from io import BytesIO
+
+@login_required
 def profile(request):
+    print(request.user)
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
-
+    
     if request.method == 'POST':
         form = UserProfileForm(request.POST, request.FILES, instance=user_profile)
+        url = user_profile.image.url
+
+        # Check if the form is valid before proceeding
         if form.is_valid():
-            form.save()
+            # Save the form data without committing to the database
+            user_profile = form.save(commit=False)
+            user_profile.image_url = url
+            # Handle Cloudinary upload separately
+            if 'profile_images' in request.FILES:
+                image_file = request.FILES['image']
+
+                # Check if the file is InMemoryUploadedFile
+                if isinstance(image_file, InMemoryUploadedFile):
+                    # If so, create a BytesIO object to read the content
+                    image_content = BytesIO(image_file.read())
+                    user_profile.image = image_content
+                else:
+                    user_profile.image = image_file
+
+            # Save the UserProfile instance to the database
+            user_profile.save()
+
             return redirect('profile')
+
     else:
         form = UserProfileForm(instance=user_profile)
 
     return render(request, 'profile.html', {'user_profile': user_profile, 'form': form})
+
+
+
+
 
 def delete_image(request):
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
     user_profile.image.delete()
     user_profile.save()
     return redirect('profile')
+
+
+# response = redirect('/api/login/')
+# response.delete_cookie('access_token')
+# return response

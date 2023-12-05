@@ -1,6 +1,10 @@
 from pathlib import Path
 import os
 from datetime import timedelta
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,7 +34,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework_simplejwt',
     'rest_framework',
-    'authenticationApiApp'
+    'authenticationApiApp',
+    'cloudinary',
 ]
 
 MIDDLEWARE = [
@@ -145,3 +150,20 @@ SIMPLE_JWT = {
     "TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSerializer",
     "TOKEN_VERIFY_SERIALIZER": "rest_framework_simplejwt.serializers.TokenVerifySerializer",
 }
+
+          
+cloudinary.config( 
+  cloud_name = "dscxzfeac", 
+  api_key = "424133647694423", 
+  api_secret = "zDWzgHHxbwG77yhjsePtH1paRWs" 
+)
+# CLOUDINARY_STORAGE = {
+#     'CLOUD_NAME': 'dscxzfeac',
+#     'API_KEY': '424133647694423',
+#     'API_SECRET': 'zDWzgHHxbwG77yhjsePtH1paRWs',
+# }
+
+LOGIN_URL = '/api/login/'
+
+# Use Cloudinary for media storage
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
