@@ -157,6 +157,7 @@ cloudinary.config(
   api_key = "424133647694423", 
   api_secret = "zDWzgHHxbwG77yhjsePtH1paRWs" 
 )
+folder_path = "profile_images/"
 # CLOUDINARY_STORAGE = {
 #     'CLOUD_NAME': 'dscxzfeac',
 #     'API_KEY': '424133647694423',
@@ -166,4 +167,3 @@ cloudinary.config(
 LOGIN_URL = '/api/login/'
 
 # Use Cloudinary for media storage
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'

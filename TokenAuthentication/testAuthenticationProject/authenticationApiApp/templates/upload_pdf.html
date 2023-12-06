@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Upload</title>
+</head>
+
+<body>
+    <h2>PDF Upload</h2>
+
+    <form action="{% url 'upload_pdf' %}" method="post" enctype="multipart/form-data" id="pdfForm">
+        <input type="file" name="pdf_file" accept=".pdf" id="pdfInput" style="display:none" />
+        <label for="pdfInput">
+            <button type="button">Choose PDF</button>
+        </label>
+
+        <button type="button" onclick="uploadPDF()">Upload</button>
+        <button type="button" onclick="cancelUpload()">Cancel</button>
+    </form>
+
+    <div id="uploadedPDF" style="display:none">
+        <h3>Uploaded PDF:</h3>
+        <embed id="pdfViewer" type="application/pdf" width="600" height="400" />
+    </div>
+
+    <script>
+        function uploadPDF() {
+            // Trigger the file input click event
+            document.getElementById('pdfInput').click();
+        }
+
+        function cancelUpload() {
+            // Clear the file input value
+            document.getElementById('pdfInput').value = '';
+
+            // Optionally, you can hide the uploaded PDF section
+            document.getElementById('uploadedPDF').style.display = 'none';
+        }
+
+        // Function to display the selected PDF
+        document.getElementById('pdfInput').addEventListener('change', function () {
+            const fileInput = document.getElementById('pdfInput');
+            const uploadedPDF = document.getElementById('uploadedPDF');
+            const pdfViewer = document.getElementById('pdfViewer');
+
+            if (fileInput.files.length > 0) {
+                const pdfFile = fileInput.files[0];
+
+                // Optionally, you can show the uploaded PDF section
+                uploadedPDF.style.display = 'block';
+
+                // Display the selected PDF using the embedded viewer
+                pdfViewer.src = URL.createObjectURL(pdfFile);
+            }
+        });
+    </script>
+</body>
+
+</html>

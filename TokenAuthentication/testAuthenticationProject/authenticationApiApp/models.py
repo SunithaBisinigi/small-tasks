@@ -7,7 +7,14 @@ class UserToken(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     access_token = models.CharField(max_length=255)
     refresh_token = models.CharField(max_length=255)
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    image = CloudinaryField('image')  # Check the correct field name ('image') for your Cloudinary setup
-    image_url = models.URLField(blank=True, max_length=2000)
+    image = CloudinaryField('profile_images')  # Check the correct field name ('image') for your Cloudinary setup
+    image_url = models.URLField(blank=True,null=True, max_length=2000)
+
+class PdfDocument(models.Model):
+    title = models.CharField(max_length=255)
+    pdf_file = models.FileField(upload_to='pdf_documents/')
+    cloudinary_url = models.URLField(blank=True, null=True)
+

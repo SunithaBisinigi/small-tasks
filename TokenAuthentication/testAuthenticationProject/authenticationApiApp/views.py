@@ -1,7 +1,7 @@
 # # =================================token implememtation......====================================
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-from .forms import RegistrationForm, LoginForm, UserProfileForm
+from .forms import RegistrationForm, LoginForm, UserProfileForm, PdfDocumentForm
 from .models import UserToken, UserProfile
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.views.decorators.csrf import csrf_exempt
@@ -11,6 +11,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from calendar import timegm
 from datetime import datetime
+import cloudinary
 import json
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.contrib.auth.decorators import login_required
@@ -21,7 +22,8 @@ from datetime import datetime, timezone
 from django.contrib.auth import authenticate, login
 from rest_framework.decorators import permission_classes
 from django.views.decorators.cache import never_cache
-
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from io import BytesIO
 
 ######################################## DECODING THE TOKEN #####################################
 def is_base64(s):
@@ -243,79 +245,96 @@ def logoutview(request):
 
 
 ################# PROFILE ############################
-# @login_required
-# def profile(request):
-#     print (request.user)
-#     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
-#     print("hey sunitha-------",user_profile.image_url)
-#     if request.method == 'POST':
-#         form = UserProfileForm(request.POST, request.FILES, instance=user_profile)
-#         url= user_profile.image.url
-#         # print("this is url", url)
-#         if form.is_valid():
-#             user_profile = form.save(commit=False)
-#             print("data1-------",user_profile.image_url)
-#             user_profile.image_url = url
-#             user_profile.save() 
-#             print("data2--------",user_profile.image_url)#HERE I NEED TO WORK 
-#             return redirect('profile')
-#         user_profile.image_url = url
-#         user_profile.save()
-
-#     else:
-#         form = UserProfileForm(instance=user_profile)
-   
-#     return render(request, 'profile.html', {'user_profile': user_profile, 'form': form})
-from django.core.files.uploadedfile import InMemoryUploadedFile
-from io import BytesIO
-
 @login_required
+@csrf_exempt
 def profile(request):
-    print(request.user)
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
-    
     if request.method == 'POST':
         form = UserProfileForm(request.POST, request.FILES, instance=user_profile)
-        url = user_profile.image.url
-
         # Check if the form is valid before proceeding
         if form.is_valid():
             # Save the form data without committing to the database
             user_profile = form.save(commit=False)
-            user_profile.image_url = url
+
             # Handle Cloudinary upload separately
-            if 'profile_images' in request.FILES:
+            if 'image' in request.FILES:
                 image_file = request.FILES['image']
 
                 # Check if the file is InMemoryUploadedFile
                 if isinstance(image_file, InMemoryUploadedFile):
                     # If so, create a BytesIO object to read the content
                     image_content = BytesIO(image_file.read())
-                    user_profile.image = image_content
+
+                    # Upload the file to Cloudinary with the specified folder
+                    response = cloudinary.uploader.upload(
+                        image_content.getvalue(),
+                        folder='profile_images',
+                        public_id=image_file.name
+                    )
+                    user_profile.image_url = response['url']
+                    print("response---------------",response['url'])
                 else:
                     user_profile.image = image_file
-
+                    
             # Save the UserProfile instance to the database
+            # user_profile.image_url = url
             user_profile.save()
 
             return redirect('profile')
-
     else:
         form = UserProfileForm(instance=user_profile)
 
     return render(request, 'profile.html', {'user_profile': user_profile, 'form': form})
 
-
-
-
-
 def delete_image(request):
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
-    user_profile.image.delete()
-    user_profile.save()
+    
+    # Check if an image exists before attempting to delete
+    if user_profile.image:
+        # Delete the image on Cloudinary
+        cloudinary.api.delete_resources([user_profile.image.public_id])
+
+        # Delete the image locally
+        user_profile.image.delete()
+
+        # Save the UserProfile instance to update the changes
+        user_profile.save()
+
     return redirect('profile')
 
+######################## PDF DOCUMENTATIONS HANDLING ################################
+@csrf_exempt
+def upload_pdf(request):
+    # Check if the request method is POST
+    if request.method == 'POST':
+        form = PdfDocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            # Save the PDF document
+            pdf_document = form.save(commit=False)
 
-# response = redirect('/api/login/')
-# response.delete_cookie('access_token')
-# return response
+            # Handle Cloudinary upload separately
+            if 'pdf_file' in request.FILES:
+                pdf_file = request.FILES['pdf_file']
+
+                # Check if the file is InMemoryUploadedFile
+                if isinstance(pdf_file, InMemoryUploadedFile):
+                    # If so, create a BytesIO object to read the content
+                    pdf_content = BytesIO(pdf_file.read())
+                    pdf_document.pdf_file.save(pdf_file.name, pdf_content)
+
+                    # Upload the file to Cloudinary
+                    response = cloudinary.uploader.upload(pdf_content.getvalue(), folder='home/media/pdf_documents')
+                    pdf_document.cloudinary_url = response['url']
+                else:
+                    # Upload the file to Cloudinary
+                    response = cloudinary.uploader.upload(pdf_file)
+                    pdf_document.cloudinary_url = response['url']
+
+            # Save the PdfDocument instance to the database
+            pdf_document.save()
+
+            return redirect('success_page')  # Replace with your success page
+    else:
+        form = PdfDocumentForm()
+
+    return render(request, 'upload_pdf.html', {'form': form})

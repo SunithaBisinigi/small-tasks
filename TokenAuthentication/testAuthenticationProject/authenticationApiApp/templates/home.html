@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html>
 
 <head>
@@ -34,6 +34,71 @@
                         alert('Logout successful');
                         // Redirect to the login page
                         window.location.href = '/api/login';  // Update '/login' with your actual login page URL
+                    } else {
+                        alert('Logout failed');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error during logout:', error);
+                });
+        });
+    </script>
+</body>
+
+</html> -->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Home</title>
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+</head>
+
+<body>
+    <h1>Welcome to the Home Page</h1>
+    <a href="profile">Profile</a>
+    {% if user_details %}
+    <div id="user-details">
+        <h2>User Details</h2>
+        <p>Username: {{ user_details.username }}</p>
+        <p>Email: {{ user_details.useremail }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Button to open PDF upload form -->
+    <button id="upload-pdf-button">Upload PDF</button>
+
+    <button id="logout-button">Logout</button>
+
+    <script>
+        alert("Welcome to home page ")
+
+        // Function to open PDF upload form
+        function openPdfUploadForm() {
+            // Redirect to the PDF upload form
+            window.location.href = '/api/upload-pdf';  // Update '/api/upload-pdf' with your actual PDF upload form URL
+        }
+
+        // Attach click event to the "Upload PDF" button
+        document.getElementById('upload-pdf-button').addEventListener('click', openPdfUploadForm);
+
+        // Attach click event to the "Logout" button
+        document.getElementById('logout-button').addEventListener('click', function () {
+            fetch('/api/logout/', {
+                method: 'POST',  // You can use 'GET' or 'POST' based on your server-side implementation
+                credentials: 'same-origin',  // Include cookies in the request
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Logout successful');
+                        // Redirect to the login page
+                        window.location.href = '/api/login';  // Update '/api/login' with your actual login page URL
                     } else {
                         alert('Logout failed');
                     }
