@@ -11,13 +11,21 @@
     <h2>PDF Upload</h2>
 
     <form action="{% url 'upload_pdf' %}" method="post" enctype="multipart/form-data" id="pdfForm">
-        <input type="file" name="pdf_file" accept=".pdf" id="pdfInput" style="display:none" />
-        <label for="pdfInput">
-            <button type="button">Choose PDF</button>
-        </label>
+        <!-- Add the "title" input field -->
+        <label for="title">Title:</label>
+        <input type="text" name="title" id="title" placeholder="Enter title" required>
 
+        <!-- Add the file input field for the PDF file -->
+        <input type="file" name="pdf_file" accept=".pdf" id="pdfInput" style="display:none" />
+
+        <!-- Add your existing buttons -->
+        <button type="button" onclick="uploadPDF()">Choose PDF</button>
         <button type="button" onclick="uploadPDF()">Upload</button>
         <button type="button" onclick="cancelUpload()">Cancel</button>
+        <button type="button" onclick="savePDF()">Save</button>
+
+        <!-- Add a button to go back to the home page -->
+        <a href="{% url 'home' %}"><button type="button">Back to Home Page</button></a>
     </form>
 
     <div id="uploadedPDF" style="display:none">
@@ -37,6 +45,11 @@
 
             // Optionally, you can hide the uploaded PDF section
             document.getElementById('uploadedPDF').style.display = 'none';
+        }
+
+        function savePDF() {
+            // Perform save operation here (e.g., send the form to the server)
+            document.getElementById('pdfForm').submit();
         }
 
         // Function to display the selected PDF

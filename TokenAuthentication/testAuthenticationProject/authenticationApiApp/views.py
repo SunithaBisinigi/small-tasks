@@ -303,37 +303,45 @@ def delete_image(request):
     return redirect('profile')
 
 ######################## PDF DOCUMENTATIONS HANDLING ################################
+@login_required
 @csrf_exempt
 def upload_pdf(request):
-    # Check if the request method is POST
     if request.method == 'POST':
         form = PdfDocumentForm(request.POST, request.FILES)
+        print("pdf---------", request.FILES)
         if form.is_valid():
-            # Save the PDF document
+            print("form valid---------")
             pdf_document = form.save(commit=False)
 
             # Handle Cloudinary upload separately
             if 'pdf_file' in request.FILES:
+                print("checking-----")
                 pdf_file = request.FILES['pdf_file']
-
-                # Check if the file is InMemoryUploadedFile
                 if isinstance(pdf_file, InMemoryUploadedFile):
-                    # If so, create a BytesIO object to read the content
                     pdf_content = BytesIO(pdf_file.read())
                     pdf_document.pdf_file.save(pdf_file.name, pdf_content)
 
                     # Upload the file to Cloudinary
-                    response = cloudinary.uploader.upload(pdf_content.getvalue(), folder='home/media/pdf_documents')
+                    response = cloudinary.uploader.upload(pdf_content.getvalue(), folder='pdf_documents', resource_type="raw")
+                    print("response from the cloudinary---------", response['url'])
                     pdf_document.cloudinary_url = response['url']
                 else:
                     # Upload the file to Cloudinary
-                    response = cloudinary.uploader.upload(pdf_file)
+                    response = cloudinary.uploader.upload(pdf_file, resource_type="raw")
                     pdf_document.cloudinary_url = response['url']
+
+            # Print data before saving
+            print("pdf_document title:", pdf_document.title)
+            print("pdf_document pdf_file:", pdf_document.pdf_file)
+            print("pdf_document cloudinary_url:", pdf_document.cloudinary_url)
 
             # Save the PdfDocument instance to the database
             pdf_document.save()
 
-            return redirect('success_page')  # Replace with your success page
+            print("Redirecting to success_page")
+            return redirect('/api/upload-pdf/')  # Replace with your success page
+        else:
+            print("Form is not valid. Errors:", form.errors)
     else:
         form = PdfDocumentForm()
 
