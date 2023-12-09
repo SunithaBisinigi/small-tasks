@@ -1,9 +1,9 @@
 from pathlib import Path
 import os
 from datetime import timedelta
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
+# import cloudinary
+# import cloudinary.uploader
+# import cloudinary.api
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -151,19 +151,29 @@ SIMPLE_JWT = {
     "TOKEN_VERIFY_SERIALIZER": "rest_framework_simplejwt.serializers.TokenVerifySerializer",
 }
 
-          
-cloudinary.config( 
-  cloud_name = "dscxzfeac", 
-  api_key = "424133647694423", 
-  api_secret = "zDWzgHHxbwG77yhjsePtH1paRWs" 
-)
-folder_path = "profile_images/"
-# CLOUDINARY_STORAGE = {
-#     'CLOUD_NAME': 'dscxzfeac',
-#     'API_KEY': '424133647694423',
-#     'API_SECRET': 'zDWzgHHxbwG77yhjsePtH1paRWs',
-# }
+         
+# cloudinary.config( 
+#   cloud_name = "dscxzfeac", 
+#   api_key = "424133647694423", 
+#   api_secret = "zDWzgHHxbwG77yhjsePtH1paRWs" 
+# )
+# folder_path = "profile_images/"
+# # CLOUDINARY_STORAGE = {
+# #     'CLOUD_NAME': 'dscxzfeac',
+# #     'API_KEY': '424133647694423',
+# #     'API_SECRET': 'zDWzgHHxbwG77yhjsePtH1paRWs',
+# # }
 
-LOGIN_URL = '/api/login/'
+# LOGIN_URL = '/api/login/'
 
-# Use Cloudinary for media storage
+# # Use Cloudinary for media storage
+
+# ####### AWS CONFIGURATION
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+# Amazon S3 settings.
+AWS_ACCESS_KEY_ID = 'AKIATG2SAKIBG47YGUKG'
+AWS_SECRET_ACCESS_KEY = 'nwZYb4uuCRT5/2FwACd4i6vBpQSabGAkVApndBde'
+AWS_STORAGE_BUCKET_NAME = 'django-profile-images'
+AWS_S3_REGION_NAME = 'ap-south-1'  # e.g., us-east-1
+AWS_S3_CUSTOM_DOMAIN = 'django-profile-images.s3.ap-south-1.amazonaws.com'

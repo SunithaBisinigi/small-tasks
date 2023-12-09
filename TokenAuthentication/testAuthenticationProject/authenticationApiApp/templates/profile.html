@@ -18,7 +18,7 @@
 
     <div class="mb-4">
         {% if user_profile.image %}
-        <img src="{{ user_profile.image.url }}" alt="{{ user_profile.user.username }}'s Profile Image" class="img-fluid"
+        <img src="{{ user_profile.image_url }}" alt="{{ user_profile.user.username }}'s Profile Image" class="img-fluid"
             style="max-width: 300px; height: auto;">
         {% else %}
         <p>No profile image available.</p>

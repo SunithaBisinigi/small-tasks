@@ -11,6 +11,9 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from calendar import timegm
 from datetime import datetime
+import boto3
+from django.conf import settings
+from botocore.exceptions import NoCredentialsError
 import cloudinary
 import json
 from django.http import JsonResponse, HttpResponseBadRequest
@@ -249,42 +252,63 @@ def logoutview(request):
 @csrf_exempt
 def profile(request):
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+
     if request.method == 'POST':
         form = UserProfileForm(request.POST, request.FILES, instance=user_profile)
-        # Check if the form is valid before proceeding
         if form.is_valid():
-            # Save the form data without committing to the database
             user_profile = form.save(commit=False)
 
-            # Handle Cloudinary upload separately
             if 'image' in request.FILES:
                 image_file = request.FILES['image']
+                try:
+                    # Read the content of the file into memory
+                    image_content = image_file.read()
 
-                # Check if the file is InMemoryUploadedFile
-                if isinstance(image_file, InMemoryUploadedFile):
-                    # If so, create a BytesIO object to read the content
-                    image_content = BytesIO(image_file.read())
-
-                    # Upload the file to Cloudinary with the specified folder
-                    response = cloudinary.uploader.upload(
-                        image_content.getvalue(),
-                        folder='profile_images',
-                        public_id=image_file.name
+                    # Initialize the S3 client
+                    s3 = boto3.client(
+                        's3',
+                        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                        region_name=settings.AWS_S3_REGION_NAME
                     )
-                    user_profile.image_url = response['url']
-                    print("response---------------",response['url'])
-                else:
-                    user_profile.image = image_file
-                    
-            # Save the UserProfile instance to the database
-            # user_profile.image_url = url
-            user_profile.save()
 
-            return redirect('profile')
+                    # Set the file key based on your preference
+                    file_key = f'user_{request.user.id}_{image_file.name}'
+
+                    # Upload the file to AWS S3
+                    s3.upload_fileobj(BytesIO(image_content), settings.AWS_STORAGE_BUCKET_NAME, file_key)
+
+                    # Set the URL in the model
+                    user_profile.image_url = f'https://{settings.AWS_S3_CUSTOM_DOMAIN}/{file_key}'
+
+                    # Save the UserProfile instance to update the changes
+                    user_profile.save()
+
+                    # Render the profile page with the image directly
+                    context = {
+                        'user_profile': user_profile,
+                        'form': form,
+                    }
+                    return render(request, 'profile.html', context)
+                except NoCredentialsError:
+                    return JsonResponse({'error': 'AWS credentials not available'}, status=500)
+                except Exception as e:
+                    return JsonResponse({'error': str(e)}, status=500)
+            else:
+                # Your existing code for form validation
+                return JsonResponse({'message': 'Profile updated successfully'})
+
     else:
         form = UserProfileForm(instance=user_profile)
 
-    return render(request, 'profile.html', {'user_profile': user_profile, 'form': form})
+    # Pass the image_url to the template context
+    context = {
+        'user_profile': user_profile,
+        'form': form,
+        'image_url': user_profile.image_url  # Add this line
+    }
+
+    return render(request, 'profile.html', context)
 
 def delete_image(request):
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
@@ -308,41 +332,45 @@ def delete_image(request):
 def upload_pdf(request):
     if request.method == 'POST':
         form = PdfDocumentForm(request.POST, request.FILES)
-        print("pdf---------", request.FILES)
         if form.is_valid():
-            print("form valid---------")
             pdf_document = form.save(commit=False)
 
-            # Handle Cloudinary upload separately
+            # Handle AWS S3 upload separately
             if 'pdf_file' in request.FILES:
-                print("checking-----")
                 pdf_file = request.FILES['pdf_file']
-                if isinstance(pdf_file, InMemoryUploadedFile):
-                    pdf_content = BytesIO(pdf_file.read())
-                    pdf_document.pdf_file.save(pdf_file.name, pdf_content)
 
-                    # Upload the file to Cloudinary
-                    response = cloudinary.uploader.upload(pdf_content.getvalue(), folder='pdf_documents', resource_type="raw")
-                    print("response from the cloudinary---------", response['url'])
-                    pdf_document.cloudinary_url = response['url']
-                else:
-                    # Upload the file to Cloudinary
-                    response = cloudinary.uploader.upload(pdf_file, resource_type="raw")
-                    pdf_document.cloudinary_url = response['url']
+                try:
+                    # Read the content of the file into memory
+                    pdf_content = pdf_file.read()
 
-            # Print data before saving
-            print("pdf_document title:", pdf_document.title)
-            print("pdf_document pdf_file:", pdf_document.pdf_file)
-            print("pdf_document cloudinary_url:", pdf_document.cloudinary_url)
+                    # Initialize the S3 client
+                    s3 = boto3.client(
+                        's3',
+                        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                        region_name=settings.AWS_S3_REGION_NAME
+                    )
 
-            # Save the PdfDocument instance to the database
-            pdf_document.save()
+                    # Set the file key based on your preference
+                    pdf_file_key = f'pdf_documents/{pdf_file.name}'
 
-            print("Redirecting to success_page")
-            return redirect('/api/upload-pdf/')  # Replace with your success page
-        else:
-            print("Form is not valid. Errors:", form.errors)
+                    # Upload the file to AWS S3
+                    s3.upload_fileobj(BytesIO(pdf_content), settings.AWS_STORAGE_BUCKET_NAME, pdf_file_key)
+
+                    # Set the URL in the model
+                    pdf_document.pdf_file_url = f'https://{settings.AWS_S3_CUSTOM_DOMAIN}/{pdf_file_key}'
+
+                    # Save the PdfDocument instance to the database
+                    pdf_document.save()
+
+                    return redirect('/api/upload-pdf/')  # Replace with your success page
+
+                except Exception as e:
+                    return JsonResponse({'error': str(e)}, status=500)
+
     else:
         form = PdfDocumentForm()
 
     return render(request, 'upload_pdf.html', {'form': form})
+
+   
